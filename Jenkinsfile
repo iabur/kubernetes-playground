@@ -5,6 +5,12 @@ pipeline {
         maven 'Maven 3.8.6' // Replace with the name you configured in Jenkins
     }
 
+    environment {
+        DOCKER_IMAGE = 'iabur/jenkins-spring-boot-1.0:latest'
+        SERVICE_ACCOUNT = 'jenkins-sa' // Replace with your service account name
+        NAMESPACE = 'default' // Change if needed
+    }
+
     stages {
         stage('Build') {
             steps {
@@ -22,8 +28,8 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: '77ec4acc-1746-4d5e-bcfb-4ad16476effd', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASSWORD')]) {
                     sh 'docker login -u $DOCKER_USER -p $DOCKER_PASSWORD'
-                    sh 'docker tag jenkins-spring-boot-1.0:latest iabur/jenkins-spring-boot-1.0:latest'
-                    sh 'docker push iabur/jenkins-spring-boot-1.0:latest'
+                    sh 'docker tag jenkins-spring-boot-1.0:latest $DOCKER_IMAGE'
+                    sh 'docker push $DOCKER_IMAGE'
                 }
             }
         }
@@ -38,10 +44,11 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                echo 'Deploying to Kubernetes'
-                withCredentials([file(credentialsId: '123456', variable: 'KUBECONFIG')]) {
-                    sh 'kubectl apply -f k8s-deployment.yaml --validate=false'
-                }
+                echo 'Deploying to Kubernetes using Service Account'
+                sh '''
+                    kubectl apply -f k8s-deployment.yaml --validate=false \
+                    --as=system:serviceaccount:$NAMESPACE:$SERVICE_ACCOUNT
+                '''
             }
         }
     }
