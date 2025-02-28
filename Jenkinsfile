@@ -28,8 +28,17 @@ pipeline {
             }
         }
 
+        stage('Verify Files') {
+            steps {
+                echo 'Checking workspace directory'
+                sh 'pwd'  // Shows the current directory
+                sh 'ls -alh'  // Lists all files to ensure k8s-deployment.yaml exists
+            }
+        }
+
         stage('Deploy to Kubernetes') {
             steps {
+                echo 'Deploying to Kubernetes'
                 sh 'kubectl apply -f k8s-deployment.yaml'
             }
         }
