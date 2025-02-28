@@ -46,6 +46,8 @@ pipeline {
             steps {
                 echo 'Deploying to Kubernetes using Service Account'
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+                    sh 'kubectl apply -f role.yaml'
+                    sh 'kubectl apply -f rolebinding.yaml'
                     sh '''
                         kubectl apply -f k8s-deployment.yaml --validate=false \
                         --as=system:serviceaccount:$NAMESPACE:$SERVICE_ACCOUNT
