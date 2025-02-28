@@ -7,7 +7,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'iabur/jenkins-spring-boot-1.0:latest'
-        SERVICE_ACCOUNT = 'jenkins-sa' // Replace with your service account name
+        SERVICE_ACCOUNT = 'jenkins-sa' // Replace with your existing service account name
         NAMESPACE = 'default' // Change if needed
     }
 
@@ -45,10 +45,12 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 echo 'Deploying to Kubernetes using Service Account'
-                sh '''
-                    kubectl apply -f k8s-deployment.yaml --validate=false \
-                    --as=system:serviceaccount:$NAMESPACE:$SERVICE_ACCOUNT
-                '''
+                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+                    sh '''
+                        kubectl apply -f k8s-deployment.yaml --validate=false \
+                        --as=system:serviceaccount:$NAMESPACE:$SERVICE_ACCOUNT
+                    '''
+                }
             }
         }
     }
