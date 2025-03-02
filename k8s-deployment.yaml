@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: spring-boot-app
+  name: spring-boot-app-deployment
 spec:
   replicas: 2
   selector:
@@ -12,7 +12,7 @@ spec:
       labels:
         app: spring-boot-app
     spec:
-      serviceAccountName: spring-boot-app-sa
+#      serviceAccountName: spring-boot-app-sa
       containers:
         - name: spring-boot-app
           image: iabur/jenkins-spring-boot-1.0:latest
@@ -23,11 +23,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: spring-boot-app
+  name: spring-boot-app-service
 spec:
-  type: LoadBalancer
+  type: NodePort
   ports:
-    - port: 80
+    - port: 8888
+      protocol: TCP
       targetPort: 8888
   selector:
     app: spring-boot-app
