@@ -7,28 +7,37 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'iabur/jenkins-spring-boot-1.0:latest'
-        SERVICE_ACCOUNT = 'jenkins-sa' // Replace with your existing service account name
+        SERVICE_ACCOUNT = 'jenkins-sa' // Change if needed
         NAMESPACE = 'default' // Change if needed
     }
 
     stages {
-        stage('Build') {
+        stage('Checkout Code') {
             steps {
+                echo 'Checking out code...'
+                checkout scm
+            }
+        }
+
+        stage('Compile & Package') {
+            steps {
+                echo 'Building the application with Maven...'
                 sh 'mvn clean package'
             }
         }
 
         stage('Build Docker Image') {
             steps {
+                echo 'Building Docker image...'
                 sh 'docker build -t $DOCKER_IMAGE .'
             }
         }
 
-        stage('Push to Docker Registry') {
+        stage('Push Docker Image to Registry') {
             steps {
+                echo 'Logging into Docker registry...'
                 withCredentials([usernamePassword(credentialsId: 'dockerCredential', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASSWORD')]) {
                     sh 'docker login -u $DOCKER_USER -p $DOCKER_PASSWORD'
-                    sh 'docker tag $DOCKER_IMAGE $DOCKER_IMAGE'
                     sh 'docker push $DOCKER_IMAGE'
                 }
             }
@@ -36,9 +45,9 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                echo 'Deploying to Kubernetes cluster'
+                echo 'Deploying application to Kubernetes...'
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-                    sh 'kubectl rollout restart deployment spring-boot-app-deployment'
+                    sh 'kubectl --kubeconfig=$KUBECONFIG rollout restart deployment spring-boot-app-deployment -n $NAMESPACE'
                 }
             }
         }
@@ -46,10 +55,10 @@ pipeline {
 
     post {
         failure {
-            echo 'Pipeline failed! Check the logs for details.'
+            echo '❌ Pipeline failed! Check logs for details.'
         }
         success {
-            echo 'Pipeline succeeded!'
+            echo '✅ Pipeline succeeded!'
         }
     }
 }
