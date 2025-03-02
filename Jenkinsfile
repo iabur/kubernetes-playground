@@ -38,7 +38,7 @@ pipeline {
             steps {
                 echo 'Deploying to Kubernetes cluster'
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-                    sh 'kubectl --kubeconfig=$KUBECONFIG set image deployment/jenkins-spring-boot jenkins-spring-boot=$DOCKER_IMAGE -n $NAMESPACE'
+                    sh 'kubectl rollout restart deployment spring-boot-app-deployment'
                 }
             }
         }
