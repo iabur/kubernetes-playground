@@ -7,47 +7,38 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'iabur/jenkins-spring-boot-1.0:latest'
-        SERVICE_ACCOUNT = 'jenkins-sa' // Change if needed
+        SERVICE_ACCOUNT = 'jenkins-sa' // Replace with your existing service account name
         NAMESPACE = 'default' // Change if needed
     }
 
     stages {
-        stage('Checkout Code') {
+        stage('Compile and Package Application') {
             steps {
-                echo 'Checking out code...'
-                checkout scm
-            }
-        }
-
-        stage('Compile & Package') {
-            steps {
-                echo 'Building the application with Maven...'
                 sh 'mvn clean package'
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Create Docker Image') {
             steps {
-                echo 'Building Docker image...'
                 sh 'docker build -t $DOCKER_IMAGE .'
             }
         }
 
-        stage('Push Docker Image to Registry') {
+        stage('Upload Docker Image to Registry') {
             steps {
-                echo 'Logging into Docker registry...'
                 withCredentials([usernamePassword(credentialsId: 'dockerCredential', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASSWORD')]) {
                     sh 'docker login -u $DOCKER_USER -p $DOCKER_PASSWORD'
+                    sh 'docker tag $DOCKER_IMAGE $DOCKER_IMAGE'
                     sh 'docker push $DOCKER_IMAGE'
                 }
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('Update Kubernetes Deployment') {
             steps {
-                echo 'Deploying application to Kubernetes...'
+                echo 'Deploying to Kubernetes cluster'
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-                    sh 'kubectl --kubeconfig=$KUBECONFIG rollout restart deployment spring-boot-app-deployment -n $NAMESPACE'
+                    sh 'kubectl rollout restart deployment spring-boot-app-deployment'
                 }
             }
         }
@@ -55,10 +46,10 @@ pipeline {
 
     post {
         failure {
-            echo '❌ Pipeline failed! Check logs for details.'
+            echo 'Pipeline failed! Check the logs for details.'
         }
         success {
-            echo '✅ Pipeline succeeded!'
+            echo 'Pipeline succeeded!'
         }
     }
 }
