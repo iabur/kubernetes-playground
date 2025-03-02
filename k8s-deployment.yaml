@@ -12,11 +12,10 @@ spec:
       labels:
         app: spring-boot-app
     spec:
-#      serviceAccountName: spring-boot-app-sa
       containers:
         - name: spring-boot-app
           image: iabur/jenkins-spring-boot-1.0:latest
-          imagePullPolicy: Always  # Add this line
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8888
 ---
