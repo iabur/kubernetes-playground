@@ -1,9 +1,9 @@
 pipeline {
     agent any
 
-    tools {
-        maven 'Maven 3.8.6'
-    }
+//     tools {
+//         maven 'Maven 3.8.6'
+//     }
 
     environment {
         DOCKER_IMAGE = 'iabur/jenkins-spring-boot-1.0:latest'
