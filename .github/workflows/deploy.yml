@@ -44,6 +44,10 @@ jobs:
           echo "Manually set ECR Registry: $ECR_REGISTRY"
           echo "ECR_REGISTRY=$ECR_REGISTRY" >> $GITHUB_ENV
 
+      - name: Log in to Amazon ECR
+        run: |
+          aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin $ECR_REGISTRY
+
       - name: Build, tag, and push image to Amazon ECR
         env:
           ECR_REGISTRY: ${{ env.ECR_REGISTRY }}
