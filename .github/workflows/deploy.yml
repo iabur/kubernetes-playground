@@ -79,7 +79,7 @@ jobs:
 
       - name: Update kubeconfig
         run: |
-          aws eks update-kubeconfig --name my-spring-boot-eks-cluster --region ap-southeast-1
+          aws eks update-kubeconfig --name <correct-cluster-name> --region ap-southeast-1
 
       - name: Deploy to EKS
         run: |
